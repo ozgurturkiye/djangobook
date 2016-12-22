@@ -1,4 +1,4 @@
-  # Adımlar python3 sürümüne ve Django 1.8(LTS) sürümüne göre anlatılmıştır.
+# Adımlar python3 sürümüne ve Django 1.8(LTS) sürümüne göre anlatılmıştır.
   
   1. Python package index kur. (sudo apt-get install python3-pip)
   2. Pip ile Virtual enviroment kur. (sudo pip3 install virtualenv)
