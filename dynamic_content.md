@@ -55,7 +55,24 @@ from mysite.views import hello, current_datetime
  * Sonra da web tarayıcıya url'yi girelim `http://127.0.0.1:8000/time/` tabi biz yerel makinada çalışmadığımız için sunucu adımızı giriyoruz ip adresi yerine. Şimdi burada web sitesi reklamı yapmayalım :)
  
  ## URLconfs and Loose Coupling
- ## URLconfs ve Gevşekçe bağlaşım(Türkçesi bir komik oldu buranın)
+ ## URLconfs ve Gevşekçe bağlaşım(Türkçesi bir komik oldu buranın lakin bu bir yazılım geliştirme yaklaşımı)
+ 
+ `Loose Coupling` URLconfs ve Django'nun arkasındaki temel felsefedir. Eğer yanlış çevirmiyorsam! Loose Coupling: değerleri birbiri ile değiştirilebilir yapmanın önemidir. Eğer iki parça kod `Loose Coupling`(yani gevşekçe:)) olarak bağlıysa, birinde yapılan değişiklik diğerini ya çok az etkiler ya hiç etkilemez. 
+ Django URLconfs bu prensibe güzel bir örnektir. Django web uygulamalarında; URL tanımlaması ve view fonksiyonları Loose Coupling'e güzel bir örnektir.
+ Küçük bir örnek: istediğin URL'i istediğin view'e bağla kimse etkilenmez ve kimse de bişey diyemez :D
+ ```python
+ urlpatterns = [
+      url(r'^admin/', include(admin.site.urls)),
+      url(r'^hello/$', hello),
+      url(r'^time/$', current_datetime),
+      url(r'^another-time-page/$', current_datetime),
+]
+```
+## Your Third View: Dynamic URLs
+## Üçüncü View: Dinamik URLs
+
+
+ 
  
  
  
