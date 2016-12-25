@@ -21,7 +21,7 @@ def hello(request):
 
 def current_datetime(request):
     now = datetime.datetime.now()
-    html = "It is now %s." % now
+    html = "It is now {}:".format(now)
     return HttpResponse(html)
 ```
 
