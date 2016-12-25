@@ -126,4 +126,10 @@ Ta ta taa taaaaa olduysa, olmadıysa özgün kaynak olan: http://djangobook.com/
 ## Django’s Pretty Error Pages
 ## Django'nun güzel mi güzel hata sayfaları
 
+Şimdiye kadar yaptığımız mükemmle web uygulamasına kısa bir ara verelim ve hata sayfalarını inceleyelim :)
 
+* Django'nun açıklayıcı hata sayfaları vardır. 
+* Ben en çok hata özetini (Hatanın bulabildiği direk sebebi), yerel değişkenleri gösterme seçeneğini ve hatayı tek tık ile internette paylaşma özelliğini sevdim ;)
+* Request information bilgisi de on numara :)
+* Ayrıca view'in herhangi bir noktasında `assert False` yazarak hatayı tetikleyebilir ve böylece Local variable(yerel değişkenleri) inceleyebiliriz ve programın durumuna bakabiliriz.
+* Son olarak hata sayfalarında çok hassas bilgiler sunduğu açık. Bu yüzden hata sayfalarını genel olarak göstermek akıllıca olmaz ve kötü niyetli kişilere bir sürü bilgi vermiş oluruz. Django projelerinin yalnızca Debug(hata ayıklama) modunda iken hata göstermesi açık olmalı. Hata sayfalarının nasıl kapatıldığına ileriki bölümlerde bakacağız. (Kitabın 13. bölümü) 
