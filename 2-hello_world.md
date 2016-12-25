@@ -19,7 +19,7 @@ def hello(request):
  Bu nesne aktif web request(bunu ingilizcesi ile bırakıyorum) içerir ve view i tetikler. Ayrıca django.http.HttpRequest sınıfının örneği olur kendisi.
  * Bu örnekte `request` ile ilgili herhangi birşey yapmadık fakat ilk parametre olmak zorundadır.
  * Son satırda yanlızca HttpResponse nesnesini döndürür ki "Hello world" tür kendisi :)
- * Burada ki ana ders: view yalnızca bir Python fonksiyonudur ve parametre olarak `HttpRequest` alır ve `HttpRespons` örneğini döndürür.
+ * Burada ki ana ders: view yalnızca bir Python fonksiyonudur ve parametre olarak `HttpRequest` alır ve `HttpResponse` örneğini döndürür.
  
 ### İlk URLCONF
 1. Django'da belirli bir URL'den view fonksiyonunu yakalamak için URLconf' kullanırız. URLconf'u içerik tablosu gibidir.
