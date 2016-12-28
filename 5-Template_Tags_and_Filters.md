@@ -160,7 +160,7 @@ Her `{% for %}` döngüsünün içinde adı `forloop` olan template değişkenin
   * `forloop.revcounter0` bu da üsttekinin aynısı lakin son döngüde 0 olur.
   * `forloop.first` Boolean değer tutar ve döngü ilk defa çalışıyorsa "True" değerini alır. Bu özel durumlar için çok uygundur: 
   ```python
-    {% for object in objects %}
+  {% for object in objects %}
 
   {% if forloop.first %}<li class="first">{% else %}<li>
       {%
@@ -270,6 +270,31 @@ multi-line comment.
 ### Filters
 ### Filtreler
 
+Daha önce de açıklandığı gibi template filtreleri değişkenlerin değerlerini göstermeden önce değiştirmenin basit yoludur. Filtreler pipe karakterinin kullanırlar. "|":
+
+`{{ name|lower }}`
+
+Yukarıdaki örnek `{{ name }}` değişkeninin değerinin göstermeden önce `lower` filtresini uygular ve stringi küçük harfe çevirir. Filtreler uc uca bağlanabilir. (Filters can be chained böyle yazınca daha karizma oluyor lakin :)) 
+Aşağıdaki örnek listenin ilk elemanını alıp onun harflerini büyük farf yapar:
+
+`{{ my_list|first|upper }}`
+
+Bazı filtreler arguman alabilir. Filtrelerin argumanları iki noktadan sonra gelir ve her zaman çift tırnak içinde yer alır. Örnek:
+
+`{{ bio|truncatewords:"30" }}`
+
+Yukarıdaki örnek bio değişkeninin ilk 30 kelimesini gösterir.
+
+Aşağıda en çok kullanılan filtrelerin listesini inceleyelim:
+
+* `addslashes`: Ters bölü, tek tırnak, çift tırnak karakterlerinden önce ters bölü işareti ekler. Kaçış dizileri için faydalırdır. Örnek: `{{ value|addslashes }}`
+* `date`: date veya datetime nesnelerini verilen parametreye göre biçimlendirir. Örnek: `{{ pub_date|date:"F j, Y" }}` 
+* `length`: Değişkenin uzunluğunu döndürür. Liste için liste eleman sayısını, karakter dizisi için karakter sayısını. Eğer değişken tanımlı değilse 0 döndürür.
+
+## Philosophies and Limitations
+## Felsefe ve Sınırlamalar
+
+Artık Django Template Language(DTL) için bir hissiyat oluşturduk :)
 
   
   
