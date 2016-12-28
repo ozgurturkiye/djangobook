@@ -182,8 +182,179 @@ Burada anlatılanlar Django template system'in temelleridir.
 ## Multiple Contexts, Same Template
 ## Aynı Template içinde çoklu Context kullanımı
 
+Öncelikle Template objesi oluştur ve farklı context'ler ile render edelim.
 
+```python
+>>> from django.template import Template, Context
+>>> t = Template('Hello, {{ name }}')
+>>> print (t.render(Context({'name': 'John'})))
+Hello, John
+>>> print (t.render(Context({'name': 'Julie'})))
+Hello, Julie
+>>> print (t.render(Context({'name': 'Pat'})))
+Hello, Pat
+```
+Aynı template objesini farklı context'ler ile render edeceğimiz zaman öncelikle Template objesini oluşturmak ve sonra render() metodunu çalıştırmak en verimlisidir.(Burada çok fazla ingilizce kavram kullanıyoruz fakat Template-render-context adında kalması anlaşılırlık açısından daha mantıklı)
 
+Aşaıda iyi ve kötü örnekleri inceleyiniz ;)
 
+```python
+# Bad
+for name in ('John', 'Julie', 'Pat'):
+t = Template('Hello, {{ name }}')
+print (t.render(Context({'name': name})))
 
+# Good
+t = Template('Hello, {{ name }}')
+for name in ('John', 'Julie', 'Pat'):
+print (t.render(Context({'name': name})))
+```
+
+## Context Variable Lookup
+## Context Değişkenlerine Bakış
+
+Şuana kadar context içinden basit değerler aktardık ki genelde karakter dizisi. Buna rağmen Template sistemi liste, sözlük, genel obje gibi değerleri de aktarabilir. Django Template içinde karmaşık veri yapılarının kullanımı için kullanılan anathar "." nokta karakteridir.
+Noktayı, sözlük anahtarlarına, niteliklere(attributes), methodlara ve obje indexlerine ulaşmak için kullanırız.
+Aşağıda Python sözlüklerinin template içinde kullanımına bir örneğe bakalım. Sözlük anathar değerlerine, sözlük anahtarları ile ulşamak için nokta kullanımı.
+
+```python
+>>> from django.template import Template, Context
+>>> person = {'name': 'Sally', 'age': '43'}
+>>> t = Template('{{ person.name }} is {{
+person.age
+}} years old.')
+>>> c = Context({'person': person})
+>>> t.render(c)
+'Sally is 43 years old.'
+```
+Benzer bir şekilde noktayı obje niteliklerine(attribute) de erişmek için kullanabiliriz. Örnek olarak datetime.date objesi `year`, `month` ve `day` niteliklerine sahiptir ve bunlara nokta kullanarak ulaşabiliriz.
+
+```python
+>>> from django.template import Template, Context
+>>> import datetime
+>>> d = datetime.date(1993, 5, 2)
+>>> d.year
+1993
+>>> d.month
+5
+>>> d.day
+2
+>>> t = Template('The month is {{ date.month }}
+and the year is {{ date.year }}.')
+>>> c = Context({'date': d})
+>>> t.render(c)
+'The month is 5 and the year is 1993.'
+```
+Aşağıdaki örnek genel bir sınıf kullanıyor ve sınıf niteliklerine nokta kullanarak nasıl ulaşacağımızı gösteriyor.
+
+```python
+>>> from django.template import Template, Context
+>>> class Person(object):
+...     def __init__(self, first_name, last_name):
+...         self.first_name, self.last_name =
+first_name, last_name
+>>> t = Template('Hello, {{ person.first_name }} {{ person.last_name }}.')
+>>> c = Context({'person': Person('John', 'Smith')})
+>>> t.render(c)
+'Hello, John Smith.'
+```
+Nokta ayrıca objelerin(nesnelerin) methodlarına da referans verebilir. Örnek olarak her Python string'i upper() ve isdigit() methodlarına sahiptir. Bu methodları Djanog templateslerde kullanabilir.
+
+```python
+>>> from django.template import Template, Context
+>>> t = Template('{{ var }} -- {{ var.upper }} -- {{ var.isdigit }}')
+>>> t.render(Context({'var': 'hello'}))
+'hello -- HELLO -- False'
+>>> t.render(Context({'var': '123'}))
+'123 -- 123 -- True'
+```
+Not: Method çağrılarında parantezleri kullanamazsın. Ayrıca methodlara argumanda gönderemezsin. Yalnızca arguman istemeyen methodları kullanbilirsin.(Daha sonra neden olacağını açıklayacağım yazılmış :)). Son olarak nokta liste indexlerine erişmek için kullanılır.
+
+```python
+>>> from django.template import Template, Context
+>>> t = Template('Item 2 is {{ items.2 }}.')
+>>> c = Context({'items': ['apples', 'bananas',
+'carrots']})
+>>> t.render(c)
+'Item 2 is carrots.'
+```
+Not: Negatif liste indexlerine izin verilmez. Örnek olarak şu `{{ items.-1 }}` template değişkeni şu `TemplateSyntaxError.` hatayı verecektir.
+
+Nokta kullanımı inceleme şu şekilde özetlenebilir: Template sistemi değişkende noktaya rastladığı zaman, aşağıdaki sırayla işlem yapmaya çalışır:
+
+- Dictionary lookup (e.g., foo["bar"]) (Sözlüğe bakar)
+- Attribute lookup (e.g., foo.bar) (niteliğe bakar)
+- Method call (e.g., foo.bar()) (methoda bakar)
+- List-index lookup (e.g., foo[2]) (liste index'e bakar)
+
+Nokta kullanımı çoklu seviyede olabilir. Örnek olarak {{ person.name.upper }} öncelikle sözlük olarak işler (person['name']) sonra method çağrısı yapar  (upper()):
+
+```python
+>>> from django.template import Template, Context
+>>> person = {'name': 'Sally', 'age': '43'}
+>>> t = Template('{{ person.name.upper }} is {{
+person.age
+}} years old.')
+>>> c = Context({'person': person})
+>>> t.render(c)
+'SALLY is 43 years old.'
+```
+## Method Call Behavior
+## Method Çağırma Davranışı
+
+Method çağrıları, diğer çağrı tiplerinden biraz daha karmaşıktır. Aşağıda aklında tutman gereken şeyleri listeledik.
+
+* Eğer method çağrısı sırasında, method hata fırlatırsa :) ve bu hatanın `silent_variable_failure` niteliği değeri `True` değil ise, hata yayılır diğer türlü hata vermez. (Karışık oldu örnek açıklayacaktır)
+
+```python
+>>>
+  t = Template("My name is {{ person.first_name }}.")
+  >>> class PersonClass3:
+  ...     def first_name(self):
+  ...         raise AssertionError("foo")
+  >>> p = PersonClass3()
+  >>> t.render(Context({"person": p}))
+  Traceback (most recent call last):
+  ...
+  AssertionError: foo
+
+  >>> class SilentAssertionError(Exception):
+  ...     silent_variable_failure = True
+  >>> class PersonClass4:
+  ...     def first_name(self):
+  ...         raise SilentAssertionError
+  >>> p = PersonClass4()
+  >>> t.render(Context({"person": p}))
+  'My name is .'
+  ```
+  * Method çağrısı yalnızca eğer method zorunlu argumana sahip değilse çalışacaktır. Diğer türlü sistem sonraki lookup tipini(bakmayı) çalıştıracaktır. (list-index lookup).
+  * Tasarım olarak Django, mantıksal işlemlerin Template içinde yapılmasını engellemiştir. Bu sebepten Template içinden methodlara arguman gönderme imkanı yoktur. Veri views içinde hesaplanmalı ve Template'e sadece gösterim için gönderilmelidir.
+  * Template sisteme bu erişimlerin izinlerini verilseydi güvenlik açığı oluşturdu ve akıllıca olmazdı.
+  * Örnek olarak `BankAccount` nesnesi ve sahip olduğu delete() methodu olduğunu düşünelim. Eğer template şunun gibi birşey içerse {{ account.delete }} templete render edildiğinde nesne silinirdi. Bundan kaçınmak için fonksiyon niteliği olan `alters_data` method içinde düzenlenmeli. (Bu kısmı tam anlayamadım bana da karışık geldi ?)
+ 
+ Not: Django model objesinde otomatik oluşturulan delete() ve save() methodları otomatik olarak alters_data=true olur.
+ Bu kısmın orjinal ingilizce dokümana bakmak gerek tam anlaşılamadı ki tam anlatılsın ???...
+ 
+ ## How Invalid Variables Are Handled
+ ## Uygun olmayan değişkenler nasıl ele alınır
+ 
+ Genellikle, template sistem eğer değişken yoksa `string_if_invalid` ayarlarına göre işlem yapar. Bu standartta boş stringtir. Yani boş karakter basar.
+ 
+ ```python
+ >>> from django.template import Template, Context
+>>> t = Template('Your name is {{ name }}.')
+>>> t.render(Context())
+'Your name is .'
+>>> t.render(Context({'var': 'hello'}))
+'Your name is .'
+>>> t.render(Context({'NAME': 'hello'}))
+'Your name is .'
+>>> t.render(Context({'Name': 'hello'}))
+'Your name is .'
+```
+
+Bu davranış hata vermekten daha iyidir çünkü bu planlanmış insanların yapabileceği hatadır.
+Yukarıdaki örnekte tüm lookup'lar(aramalar) başarısız oldu çünkü değişken isimleri hatalı.
+Gerçek dünyada, küçük template yazım hatalarından dolayı Web sitelerinin erişilemez olaması kabul edilemez.
+ 
 
