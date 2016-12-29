@@ -1,6 +1,7 @@
 # djangobook
-django book implementation
+#djangobook web sitesinin içeriklerini Türkçeleştirme denemeleri
 
-Basic explanation of django on digital ocean server...
+Djangobook web sitesi üzerinde anlatılın konuların Digitalocean sunucuları üzerinde uyulamalı denemelerini içerir. İşin özü adamın hazırladığı konu anlatımlarını çok google translate kullanarak buraya aktarıyorum ki pratik yapmış olalım.
 
-Digital Ocean sunucularında Django için basit açıklamalar bütünü...
+
+Kaynak: http://djangobook.com/
