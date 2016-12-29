@@ -294,7 +294,56 @@ Aşağıda en çok kullanılan filtrelerin listesini inceleyelim:
 ## Philosophies and Limitations
 ## Felsefe ve Sınırlamalar
 
-Artık Django Template Language(DTL) için bir hissiyat oluşturduk :)
+Artık Django Template Language(DTL) için bir hissiyat oluşturduk :) Sanırım DTL arkasındaki basit tasarım felsefesini açıklama zamanı geldi. İlk olarak olarak DTL sınırlamaları kasıtlı yapılmıştır. 
 
-  
-  
+Bu gün için Django çekirdeğindeki felsefe:
+
+1. Mantığın sunuştan ayrılması
+2. Fazlalıktan vazgeç
+3. HTML'e bağlı olma
+4. XML kötüdür
+5. Tasarımcıyı yeterli say
+6. Whitespace'lere(boşluklara) olduğu gibi davran
+7. Programlama dili icat etme
+8. Emniyet ve güvenlik garantisi
+9. Genişletilebilir
+
+
+## 1. Mantığın sunuştan ayrılması
+Bir template sistemi sunum ve sunumla ilgili mantığı kontrol eden bir araçtır - hepsi bu kadar. Template sistemi, bu temel hedefin ötesine geçen işlevleri desteklememelidir.
+
+## 2. Fazlalıktan vazgeç
+Dinamik Web sitelerinin çoğunluğu, genel bir site tasarımı - ortak bir üstbilgi, altbilgi, gezinme çubuğu vb. Kullanır. Django şablon sistemi, bu öğeleri tek bir yerde saklamayı kolaylaştırmalı ve yinelenen kod ortadan kaldırılmalıdır. Şablon devralmasının ardındaki felsefe budur.
+
+## 3. HTML'e bağlı olma
+Şablon sistemi yalnızca HTML çıktısı olarak tasarlanmamalıdır. Diğer metin tabanlı biçimleri üretmede ya da yalnızca düz metinlerde de eşit derecede iyi olmalıdır.
+
+## 4. XML template dili için kullanılmamalıdır
+Şablonları ayrıştırmak için bir XML altyapısı kullanmak, şablonları düzenleme konusunda insan hatalarının yepyeni bir dünyasını getirir ve şablon işlemede kabul edilemez düzeyde bir yük getirir.
+
+## 5. Tasarımcıyı yeterli say
+Şablon sistemi, şablonların mutlaka Dreamweaver gibi WYSIWYG düzenleyicilerinde güzel görüntülenecek şekilde tasarlanmamalıdır. Bu, bir sınırlamadan çok ağırdır ve sözdiziminin olduğu kadar güzel olmasına izin vermez.
+
+Django, şablon yazarlarının HTML'yi doğrudan düzenlemeyi rahatça yapmalarını bekler.
+
+## 6. Whitespace'lere(boşluklara) olduğu gibi davran
+Şablon sistemi boşluklarla büyülü şeyler yapmamalıdır. Bir şablon boşluk içeriyorsa, sistem boşlukları metinde işlem görürken ele almalı - sadece onu görüntülemelidir. Şablon etiketinde olmayan herhangi bir boşluk görüntülenmelidir.
+
+## 7. Programlama dili icad etme
+Şablon sistemi kasıtlı olarak aşağıdakilere izin vermez:
+
+    Değişkenlere atama
+    İleri mantık
+
+Hedef, bir programlama dili yaratmak değildir. Amaç, sunumla ilgili kararlar almak için gerekli olan, dallanma ve döngü gibi programlama- işlevselliğini sunmaktır.
+
+Django şablon sistemi şablonların çoğunlukla programcılar değil tasarımcılar tarafından yazıldığını ve bu nedenle Python bilgisini üstlenmemesi gerektiğini tanır.
+
+## 8. Emniyet ve güvenlik garantisi
+Şablon sistemi, ilk geldiği şekli ile, veritabanı kayıtlarını silmek için kullanılan komutlar gibi kötü amaçlı kodların dahil edilmesini yasaklamalıdır. Şablon sisteminin keyfi Python koduna izin vermemesinin bir başka nedeni de budur.
+
+## 9. Genişletilebilir
+Şablon sistemi, gelişmiş şablon yazarlarının şablon teknolojisini genişletmek isteyebileceğini anlamalıdır. Özel şablon etiketleri ve filtrelerinin arkasındaki felsefe budur.
+
+Üstteki 9 maddeyi google translate kullanarak çevirdim ve fark ettim ki google translate metinleri bende daha anlaşılır çeviriyor. Bu sayfadan sonra çeviriler kısmında google translate'i kullanmayı planlıyoru. :) 
+
