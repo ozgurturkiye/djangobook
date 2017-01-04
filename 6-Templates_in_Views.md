@@ -253,3 +253,94 @@ Bilgi Notu: Dahil edilen şablonlar arasında paylaşılan bir bölge yoktur - h
 ## Template Inheritance
 ## Template(Şablon) Mirasları
 
+Şu ana kadar şablon örneklerimiz küçük HTML parçacıklarıdır, ancak gerçek dünyada tüm HTML sayfalarını oluşturmak için Django şablon sistemini kullanıyor olacaksınız. Bu ortak bir Web geliştirme sorununa neden olur: Bir Web sitesinde, site genişliğinde gezinme gibi ortak sayfa alanlarının çoğaltılmasını ve fazlalığını nasıl azaltabilir?
+
+Bu sorunu çözmenin klasik bir yolu, bir Web sayfasını başka bir web sayfasına "dahil etmek" için HTML sayfalarınıza yerleştirebileceğiniz yönerge içeren sunucu tarafı içerme yönergesini kullanmaktır. Nitekim, Django, açıklanan {% include %} şablon etiketiyle bu yaklaşımı desteklemektedir.
+
+Fakat bu sorunu Django ile çözmenin tercih edilen yolu şablon devralma adlı daha şık bir strateji kullanmaktır. Özünde, kalıp devralma, sitenizin tüm ortak bölümlerini içeren bir temel "iskelet" şablonu oluşturmanıza ve çocuk şablonlarının geçersiz kılabileceği "bloklar" tanımlamanıza izin verir. `current_datetime.html` dosyasını düzenleyerek `current_datetime` görünümümüz için daha eksiksiz bir şablon oluşturarak bunun bir örneğini görelim:
+
+```python
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+
+<html lang="en">
+
+<head>
+    <title>The current time</title>
+</head>
+<body>
+    <h1>My helpful timestamp site</h1>
+    <p>It is now {{ current_date }}.</p>
+
+    <hr>
+    <p>Thanks for visiting my site.</p>
+</body>
+</html>
+```
+
+Bu iyi görünüyor, ancak başka bir görünüme yönelik bir şablon oluşturmak istediğimizde ne olur - 2. Bölüm'ün `hours_ahead` görünümü? Güzel, geçerli, tam bir HTML şablonunu yeniden oluşturmak istersek, aşağıdakine benzer bir şey oluştururuz:
+
+```python
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+
+<html lang="en">
+
+<head>
+    <title>Future time</title>
+</head>
+<body>
+    <h1>My helpful timestamp site</h1>
+    <p>
+        In {{ hour_offset }} hour(s), it will be {{ next_time }}.
+    </p>
+
+    <hr>
+    <p>Thanks for visiting my site.</p>
+</body>
+</html>
+```
+Açıkçası, bir sürü HTML'yi tekrar kopyaladık. Bir gezinme çubuğu, birkaç stil sayfası, belki de bir JavaScript gibi daha tipik bir siteniz olsaydı, her tür şablona her türlü gereksiz HTML koymaya tekrar tekrar koymayı bir düşünün.
+
+Sunucu tarafı bu sorunun çözümünü içerir, her iki şablonda da ortak bitleri çarpıtarak onları her bir şablonda bulunan ayrı şablon snippet'lerine kaydedin. Belki de şablonun üst bölümünü `header.html` adlı bir dosyada saklarsınız:
+
+```python
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+
+<html lang="en">
+
+<head>
+```
+
+Ve belki de alt bölümü footer.html adlı bir dosyada saklarsınız:
+
+```python
+    <hr>
+    <p>Thanks for visiting my site.</p>
+    </body>
+</html>
+```
+
+Bir include tabanlı strateji ile üstbilgi ve altbilgi almak kolaydır. Dağınık ortası budur. Bu örnekte her iki sayfa da "My helpful timestamp site" başlıklı bir başlık içeriyor; ancak bu başlık, her iki sayfadaki başlık farklı olduğu için `header.html` içine sığmıyor. Üstbilgiye h1 eklediysek, başlığı eklememiz gerekir; bu da başlığı sayfa başına özelleştirmemize izin vermez.
+
+Django'nun şablon kalıtım sistemi(Django’s template inheritance system) bu sorunları çözer. Bunu, sunucu tarafı kapsayan "iç-çıkış" bir sürümü olarak düşünebilirsiniz. Sık kullanılan snippet'leri tanımlamak yerine, farklı snippet'leri tanımlarsınız.
+
+İlk adım, bir ana(base) şablon tanımlamaktır - alt şablonlarının daha sonra dolduracağı sayfanızın bir iskeleti. Devam eden örnek için temel bir şablon:
+
+```python
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+
+<html lang="en">
+
+<head>
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+    <h1>My helpful timestamp site</h1>
+    {% block content %}{% endblock %}
+
+    {% block footer %}
+    <hr>
+    <p>Thanks for visiting my site.</p>
+    {% endblock %}
+</body>
+</html>
+```
