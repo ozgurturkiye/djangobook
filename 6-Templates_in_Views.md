@@ -154,3 +154,102 @@ It is now {{ current_date }}.
 Bu dosyayı `mysite/templates` kaydedin (daha önce yapmadıysanız "templates" dizini oluşturun). Sayfayı Web tarayıcınızda yenileyin ve tam olarak oluşturulmuş sayfayı görmeniz gerekir.
 
 ## render()
+
+Şu ana kadar bir şablonun nasıl yükleneceğini, bir Context'i nasıl doldurduğunuzu ve işlenmiş şablonun sonucuyla bir HttpResponse nesnesi döndürdüğümüzü gösterdik. Sonraki adım, sabit kodlama şablonları ve şablon yolları yerine get_template () kullanmak üzere optimize etmekti. Django şablonlarının nasıl yüklendiğini ve tarayıcınıza nasıl işlendiğini anlamanız için bu işlemi gerçekleştirdim.
+
+Uygulamada, Django bunu yapmak için çok daha kolay bir yol sağlar. Django'nun geliştiricileri, bu yaygın bir deyim olduğu için Django'nun tüm bunları bir satırda yapabilecek bir kısaya ihtiyacı olduğunu kabul ettiler. Bu kısayol django.shortcuts modülünde yaşayan `render()` adı verilen bir işlevdir.
+
+Çoğu zaman, şablonları yüklemek ve Context ve HttpResponse nesnelerini manuel olarak oluşturmaktan ziyade render() öğesini kullanacaksınız - işvereniniz işinizi toplam yazılı kod satırıyla değerlendirmiyorsa, yani. :) Espiriye gel :D
+
+Render() işlevini kullanmaya devam eden current_datetime örneğini şu şekilde yazdırabilirsiniz:
+
+```python
+from django.shortcuts import render
+import datetime
+
+def current_datetime(request):
+    now = datetime.datetime.now()
+    return render(request, 'current_datetime.html', {'current_date': now})
+```
+
+Ne fark var! Kod değişikliklerinde adım adım ilerleyelim:
+
+* Artık get_template, Template, Context veya HttpResponse'u içe aktarmamız gerekmiyor. Bunun yerine, django.shortcuts.render'ı içe aktarırız. `import date time` hala geçerli.
+* Current_datetime işlevi içinde hala hesaplarız, ancak yükleme, içerik oluşturma, şablon oluşturma ve HttpResponse oluşturma kalıpları render() çağrısı ile halledilir. Render() bir HttpResponse nesnesi döndürdüğünden, bu değeri kolayca view'e(görünüme) döndürebiliriz.
+
+`Render()` ilk argümanı `request`, ikincisi kullanılacak `Template` adıdır. Üçüncü argüman, verilirse, o şablon için bir `Context` yaratmada kullanılacak bir sözlük olmalıdır. Üçüncü bir argüman sağlamazsan, render() boş bir sözlük kullanır.
+
+## Template Subdirectories
+## Template Altdizinleri
+
+Tüm şablonlarınızı tek bir dizinde saklamanız hantal olabilir. Şablon dizininizin alt dizinlerine şablonlar depolamak isteyebilirsiniz ve bu sorun değildir.
+
+Aslında bunu yapmanızı öneririm; Bazı daha gelişmiş Django özellikleri (Bölüm 10'da ele aldığımız jenerik görünüm sistemi gibi) bu şablon düzenini varsayılan bir kural olarak beklemektedir.
+
+Şablon dizininizin alt dizinlerine saklamak kolaydır. get_template() işlevini çağırırken, şablon adından önce alt dizin adını ve eğik çizgiyi ekleyin:
+```python
+t = get_template('dateapp/current_datetime.html')
+```
+
+render() get_template() etrafında küçük bir sarmalayıcı olduğundan, render() işlevinin ikinci argümanıyla aynı şeyi yapabilirsiniz:
+
+```python
+return render(request, 'dateapp/current_datetime.html', {'current_date': now})
+```
+Alt dizin ağacınızın derinlik sınırı yoktur. İstediğiniz kadar alt dizin kullanmaya çekinmeyin.
+
+* Windows kullanıcıları, ters bölüden ziyade eğik çizgi kullandığınızdan emin olun. get_template(), bir Unix tarzı dosya adı atamasını varsayar. (google bu kadar çevirdi bende düzeltmeye üşendim ;))
+
+## The include Template Tag
+## include Template Etiketi'ı :)
+
+Artık şablon yükleme mekanizmasını tamamladığımıza göre, avantajlarından yararlanan yerleşik bir şablon etiketi sunabiliriz: {% include %}.
+
+Bu etiket, başka bir şablonun içeriğini eklemenizi sağlar. Etikete verilen argüman, eklenecek şablonun adı olmalıdır ve şablon adı, tek veya çift tırnak işaretli bir değişken veya sabit kodlanmış (hard-coded) bir dize olabilir.
+
+Birden çok şablonda aynı koda sahipseniz, çoğaltmayı kaldırmak için bir {% includ %} kullanmayı düşünün. Bu iki örnek, `nav.html` şablonunun içeriğini içerir. Örnekler eşdeğerdir ve tek veya çift tırnak işaretlerine izin verildiğini gösterir:
+```python
+{% include 'nav.html' %}
+{% include "nav.html" %}
+```
+Bu örnek `includes/nav.html` şablonunun örneğini içerir:
+
+`{% include 'includes/nav.html' %}`
+
+Bu örnek, adı `template_name` değişkeninde bulunan şablonun içeriğini içerir:
+
+`{% include template_name %}`
+
+get_template() 'de olduğu gibi, şablonun dosya adı, geçerli Django uygulamasındaki "şablonlar" dizinine (`APPS_DIR` değeri `True` ise) yolu ekleyerek veya DIRS'den şablon dizinini istenen şablon adına ekleyerek belirlenir. Dahil edilen şablonlar, bunları içeren şablonun içeriği ile değerlendirilir.
+
+Örneğin, bu iki şablonu göz önünde bulundurun:
+
+```python
+# mypage.html
+
+<html>
+<body>
+    {% include "includes/nav.html" %}
+    <h1>{{ title }}</h1>
+</body>
+</html>
+
+# includes/nav.html
+
+<div id="nav">
+    You are in: {{ current_section }}
+</div>
+```
+
+Eğer mypage.html dosyasını `current_section` içeren bir `context` işlerse, değişken "include edilen" şablonda beklediğiniz gibi kullanılabilir olacaktır.
+
+Bir {% include %} etiketinde, verilen ada sahip bir şablon bulunamazsa, Django iki şeyden birini yapacaktır:
+
+* DEBUG doğru olarak ayarlanırsa, bir Django hata sayfasında `TemplateDoesNotExist` istisnasını görürsünüz.
+* DEBUG Yanlış olarak ayarlanırsa, etiket sessizce başarısız olur ve etiket yerine başka bir şey görüntülenmez.
+
+Bilgi Notu: Dahil edilen şablonlar arasında paylaşılan bir bölge yoktur - her bir "include" tamamen bağımsız bir işleme sürecidir. Bloklar dahil edilmeden önce değerlendirilirler. Diğer bir deyişle blokları içeren bir şablonun, daha önce değerlendirilen ve işlenmiş bloklar içerdiği anlamına gelir; örneğin, uzayan(extending) bir şablon tarafından geçersiz kılınabilen bloklar.
+
+## Template Inheritance
+## Template(Şablon) Mirasları
+
