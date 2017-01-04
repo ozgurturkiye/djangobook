@@ -344,3 +344,66 @@ Django'nun şablon kalıtım sistemi(Django’s template inheritance system) bu 
 </body>
 </html>
 ```
+
+`base.html` olarak adlandıracağımız bu şablon, sitedeki tüm sayfalar için kullanacağımız basit bir HTML iskeleti belgesi tanımlıyor.
+
+Blokların içeriğini geçersiz kılma, ekleme veya yalnız bırakma çocuk şablonlarının görevi. (Takip ediyorsanız, bu dosyayı `base.html` olarak şablon dizininize kaydedin.)
+
+Burada daha önce görmediğiniz bir şablon etiketi kullanıyoruz: {% block %} etiketi. Tüm {% block %} etiketleri, şablon motoruna bir alt şablonun şablonun bu bölümlerini geçersiz kılabileceğini söyler.
+
+Şu ana şablonu bulduğumuza göre, mevcut `current_datetime.html` şablonumuzu değiştirebiliriz:
+
+```python
+{% extends "base.html" %}
+
+{% block title %}The current time{% endblock %}
+
+{% block content %}
+    <p>It is now {{ current_date }}.</p>
+{% endblock %}
+```
+
+İş başındayken, Bölüm 3'teki `hours_ahead` görünümü için bir şablon oluşturalım (Kodla birlikte takip ediyorsanız, `hours_ahead`'i sabit kodlu(hard-coded) yerine şablon sistemini kullanmak üzere değiştirmeye bırakacağım. HTML.) İşte bunun nasıl görüneceği:
+
+```python
+{% extends "base.html" %}
+
+{% block title %}Future time{% endblock %}
+
+{% block content %}
+<p>
+    In {{ hour_offset }} hour(s), it will be {{ next_time }}.
+</p>
+{% endblock %}
+```
+
+Bu güzel değil mi? Her bir şablon yalnızca bu şablona özgü kodu içerir. Fazlalık gerekli değil. Site çapında bir tasarım değişikliği yapmanız gerekiyorsa, yalnızca base.html dosyasını değiştirin ve diğer tüm şablonlar değişikliği derhal yansıtacaktır.
+
+İşte nasıl çalıştığı burada. Şablon `current_datetime.html` şablonunu yüklediğinizde şablon motoru, {% extend %} etiketini görür ve bu şablonun bir alt şablon olduğunu belirtir. Motor, ana şablonu - bu durumda `base.html`'yi derhal yükler.
+
+Bu noktada, şablon motoru `base.html`'deki üç {% block %} etiketini fark eder ve bu blokları alt şablonun içeriğiyle değiştirir. Böylece, {% blok content %} ve {% block title %} olduğu gibi, içinde tanımladığımız başlık kullanılacaktır.
+
+Alt şablon altbilgi bloğunu tanımlamadığından, şablon sistemi bunun yerine üst şablonun değerini kullanır. Üst şablondaki {% block %} etiketi içerisindeki içerik her zaman geri dönüş olarak kullanılır.
+
+Miras kalıp içeriğini etkilemez. Diğer bir deyişle, devralma ağacındaki herhangi bir şablon, şablon değişkenlerinizin bağlamdan her birine erişebilir. Gerektiği kadar çok miras seviyesini kullanabilirsiniz. Devralmayı kullanmanın yaygın bir yolu aşağıdaki üç seviyeli yaklaşımdır:
+
+1. Sitenizin ana görünümünü ve özelliklerini koruyan bir `base.html` şablonu oluşturun. Bu, nadiren de olsa değişen şeylerdir.
+2. Sitenizin her bir "bölümü" için bir `base_SECTION.html` şablonu oluşturun (ör. `base_photos.html` ve `base_forum.html`). Bu şablonlar `base.html`'yi genişletir ve bölümlere özgü stilleri / tasarımları içerir.
+3. Bir forum sayfası veya bir fotoğraf galerisi gibi her sayfa türü için ayrı şablonlar oluşturun. Bu şablonlar uygun bölüm şablonunu genişletir.
+
+Bu yaklaşım, kodun yeniden kullanılmasını en üst düzeye çıkarır ve bölüm çapında gezinme gibi paylaşılan alanlara öğeler eklemeyi kolaylaştırır.
+
+Şablon devralma ile çalışmak için bazı kurallar şunlardır:
+
+1. Bir şablonda {% extend%} kullanırsanız, o şablonun ilk şablon etiketi olmalıdır. Aksi takdirde, şablon devralma çalışmaz.
+2. Genellikle, temel şablonlarınızdaki {% block%} etiketlerinin sayısı ne kadar fazlaysa, o kadar iyidir. Unutmayın, çocuk şablonlarının tüm üst blokları tanımlamaları gerekmez, böylece bir dizi blokta makul varsayılanları doldurabilir ve daha sonra yalnızca çocuk şablonlarında ihtiyacınız olanları tanımlayabilirsiniz. Daha az kancadan daha fazla kanca almak daha iyidir.
+3. Birden çok şablonda kendi kodunuzu kopyalarken bulursanız, muhtemelen bu kodu bir üst şablonda bir {% block %} taşımanız gerektiği anlamına gelir.
+4. Ana şablondan bloğun içeriğini almak istiyorsanız, ana şablonun işlenmiş metnini sağlayan "sihirli" bir değişken olan {{block.super}} kullanın. Bu, ana bloğun içeriğini tamamen geçersiz kılmak yerine eklemek istiyorsanız kullanışlıdır.
+5. Aynı şablonda aynı ada sahip birden fazla {% block %} etiket tanımlayamazsınız. Bu sınırlama, bir blok etiketi "her iki" yönde çalıştığı için ortaya çıkar. Diğer bir deyişle, bir blok etiketi yalnızca doldurmak için bir delik oluşturmaz, üstteki deliği dolduran içeriği de tanımlar. Bir şablonda benzer şekilde adlandırılmış iki {% block %} etiketi varsa, bu şablonun üst kısmı blokların hangisinin kullanılacağını bilmez.
+6. {% extend %} dosyasına gönderdiğiniz şablon adı, get_template() kullananla aynı yöntemi kullanarak yüklenir. Şablon adı, `DIRS` ayarınıza veya mevcut Django uygulamasındaki "templates" klasörüne eklenir.
+7. Çoğu durumda, {% extend %} argümanı bir dize olur, ancak çalışma zamanına kadar ana şablonun adını bilmiyorsanız değişken olabilir. Bu, daha cool ve dinamik şeyler yapmanızı sağlar.
+
+## What’s Next?
+## Sırada ne var?
+
+Şimdi, Django'nun şablon sisteminin temellerini kemerin altına aldın. Sıradaki ne? Çoğu modern Web sitesi veritabanı tabanlıdır: Web sitesinin içeriği ilişkisel bir veritabanında saklanır. Bu, verilerin ve mantıkların temiz bir şekilde ayrılmasını sağlar (görünümler ve şablonlar mantık ve görüntünün ayrılmasına izin verir aynı şekilde). Bir sonraki bölümde, Django'nun bir veritabanı ile etkileşime girmesine izin veren araçlar ele alınmaktadır.
