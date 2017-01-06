@@ -78,6 +78,8 @@ Bununla birlikte, uygulama kuralıyla ilgili bir gereklilik var: Django'nun veri
 
 `mysite` proje dizini içinde (bu, `manage.py` dosyanızın bulunduğu dizinde, `mysite` uygulama dizini değil), bir kitap uygulaması oluşturmak için bu komutu yazın:
 
-`python manage.py startapp books`
+```python
+python manage.py startapp books
+```
 
 
