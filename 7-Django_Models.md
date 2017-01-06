@@ -179,7 +179,7 @@ Alan türleri ve model sözdizimi seçeneklerinin tam listesi için Ek B'ye bak�
 ## Installing the Model
 ## Modelin Kurulumu
 
-We’ve written the code; now let’s create the tables in our database. In order to do that, the first step is to activate these models in our Django project. We do that by adding the books app to the list of “installed apps” in the settings file. Edit the `settings.py` file again, and look for the `INSTALLED_APPS` setting. `INSTALLED_APPS` tells Django which apps are activated for a given project. By default, it looks something like this:
+Kodu yazdık; Şimdi tabloları veritabanımızda oluşturalım. Bunu yapmak için, ilk adım bu modelleri Django projemizde etkinleştirmektir. Bunu, ayarlar dosyasındaki "installed apps" listesine kitap uygulaması ekleyerek yaparız. `Settings.py` dosyasını tekrar düzenleyin ve` INSTALLED_APPS` ayarını arayın. `INSTALLED_APPS`, Django'ya belirli bir proje için hangi uygulamaların etkinleştirildiğini bildirir. Varsayılan olarak, şuna benzer:
 
 ```python
 INSTALLED_APPS = (
