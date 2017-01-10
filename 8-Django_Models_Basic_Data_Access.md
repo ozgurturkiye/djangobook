@@ -258,3 +258,225 @@ WHERE name LIKE '%press%';
 ## Retrieving Single Objects
 ## Tek Nesneleri Alma
 
+`filter()` örnekleri, bir listeye benzer şekilde davranabileceğiniz bir `QuerySet` döndürdü. Bazen, bir listeye değil yalnızca tek bir nesneyi getirmek daha elverişlidir. Bunun için `get()` yöntemi şu şekildedir:
+
+```python
+>>> Publisher.objects.get(name="Apress")
+<Publisher: Apress>
+```
+
+Bir liste yerine (yalnızca `QuerySet`), yalnızca tek bir nesne döndürülür. Bu nedenle, birden çok nesne ile sonuçlanan bir sorgu bir istisna yaratacaktır:
+
+```python
+>>> Publisher.objects.get(country="U.S.A.")
+Traceback (most recent call last):
+    ...
+MultipleObjectsReturned: get() returned more than one Publisher -- it returned 2! Loo\
+kup parameters were {'country': 'U.S.A.'}
+```
+
+Hiçbir nesne döndürmeyen bir sorgu da bir istisna yaratır:
+
+```python
+>>> Publisher.objects.get(name="Penguin")
+Traceback (most recent call last):
+    ...
+DoesNotExist: Publisher matching query does not exist.
+```
+
+`DoesNotExist` istisnası, modelin sınıfının bir özniteliğidir - `Publisher.DoesNotExist`. Uygulamalarınızda şu gibi bu istisnaları yakalamak isteyeceksiniz:
+
+```python
+try:
+    p = Publisher.objects.get(name='Apress')
+except Publisher.DoesNotExist:
+    print ("Apress isn't in the database yet.")
+else:
+    print ("Apress is in the database.")
+```
+
+## Ordering Data
+## Veri Sıralama
+
+Önceki örneklerle uğraşırken, nesnelerin görünüşte rastgele bir sırayla döndüğünü keşfedebilirsiniz. Her şeyi hayal etmiyorsun; Şimdiye dek, veritabanına sonuçlarını nasıl sıralanabileceğimizi söylemedik, bu nedenle veritabanının seçtiği keyfi bir sırayla verileri geri alıyoruz. Django uygulamalarınızda muhtemelen sonuçlarınızı belirli bir değere, yani alfabetik olarak siparişi vermek isteyeceksinizdir. Bunu yapmak için order_by() yöntemini kullanın:
+
+```python
+>>> Publisher.objects.order_by("name")
+[<Publisher: Apress>, <Publisher: O'Reilly>]
+```
+
+Bu, daha önceki all() örneğinden çok farklı görünmüyor, ancak şimdi SQL'de belirli bir sıralama var:
+
+```SQL
+SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+ORDER BY name;
+```
+
+İstediğiniz herhangi bir alana göre sıralama yapabilirsiniz:
+
+```python
+>>> Publisher.objects.order_by("address")
+ [<Publisher: O'Reilly>, <Publisher: Apress>]
+
+>>> Publisher.objects.order_by("state_province")
+ [<Publisher: Apress>, <Publisher: O'Reilly>]
+```
+
+Birden fazla alana sıralama yapmak için (birinci alanın aynı olduğu durumlarda sıralamanın belirginleşmesi için ikinci alan kullanılır) birden çok bağımsız değişken kullanın:
+
+```python
+>>> Publisher.objects.order_by("state_province",
+"address")
+ [<Publisher: Apress>, <Publisher: O'Reilly>]
+```
+
+Alan adının önüne "-" (eksi karakter) ekleyerek ters sıralamayı da belirtebilirsiniz:
+
+```python
+>>> Publisher.objects.order_by("-name")
+[<Publisher: O'Reilly>, <Publisher: Apress>]
+```
+
+Bu esneklik kullanışlı olmasına rağmen, `order_by()` işlevinin her zaman kullanılması oldukça tekrarlayıcı olabilir. Çoğu zaman genellikle sipariş vermek istediğiniz belirli bir alana sahip olursunuz. Bu gibi durumlarda, Django modelde varsayılan bir sipariş belirtmenizi sağlar:
+
+```python
+class Publisher(models.Model):
+    name = models.CharField(max_length=30)
+    address = models.CharField(max_length=50)
+    city = models.CharField(max_length=60)
+    state_province = models.CharField(max_length=30)
+    country = models.CharField(max_length=50)
+    website = models.URLField()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+```
+
+Burada, yeni bir kavram getirdik: Sınıf, Meta sınıfı `class Meta`, Yayıncı sınıfı tanımında gömülü olan bir sınıftır (diğer bir deyişle, Sınıf Yayıncısı içinde girintilendirilmiş). Bu `Meta` sınıfını, çeşitli model özel seçeneklerini belirtmek için herhangi bir modelde kullanabilirsiniz. `Meta` seçeneklerinin eksiksiz bir referansı Ek B'de bulunmaktadır, ancak şu an için, sipariş seçeneği ile ilgileniyoruz. Bunu belirttiyseniz, `order_by()` ile açıkça belirtilmedikçe, Django'ya, Django veritabanı API'sı ile alındığında her Yayıncı nesnesinin `name` alanı ile sıralanması gerektiğini söyler.
+
+## Chaining Lookups
+## Zincirleme Arama
+
+Verileri nasıl filtreleyebileceğinizi ve bunu nasıl sıralayabileceğinizi öğrendiniz. Çoğu zaman, elbette, her ikisini de yapmanız gerekecek. Bu durumlarda, aramaları bir araya getirerek "zincirleme" yaparsınız:
+
+```python
+>>> Publisher.objects.filter(country="U.S.A.").order_by("-name")
+[<Publisher: O'Reilly>, <Publisher: Apress>]
+```
+
+Beklediğiniz gibi, bu hem bir `WHERE` hem de `ORDER BY` ile bir `SQL` sorgusuna çevirir:
+
+```SQL
+SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE country = 'U.S.A'
+ORDER BY name DESC;
+```
+
+## Slicing Data
+## Verileri Dilimleme
+
+Bir diğer sık rastlanan ihtiyaç sadece sabit sayıda satır aramaktır. Veritabanınızda binlerce yayıncının olduğunu düşünün, ancak yalnızca birincisini görüntülemek istiyorsanız. Bunu Python'un standart dilim dilimleme sözdizimini kullanarak yapabilirsiniz:
+
+```python
+>>> Publisher.objects.order_by('name')[0]
+<Publisher: Apress>
+```
+
+Bu kabaca şu şekilde çevrilir:
+
+```SQL
+SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+ORDER BY name
+LIMIT 1;
+```
+
+Benzer şekilde, belirli bir veri alt kümesini Python alan dilimleme sözdizimini kullanarak alabilirsiniz:
+
+```python
+>>> Publisher.objects.order_by('name')[0:2]
+```
+
+Bu, iki nesneyi kabaca şunlara çevirerek döndürür:
+
+```SQL
+SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+ORDER BY name
+OFFSET 0 LIMIT 2;
+```
+
+* Negatif dilimlemenin desteklenmediğini unutmayın:
+
+```python
+>>> Publisher.objects.order_by('name')[-1]
+Traceback (most recent call last):
+  ...
+AssertionError: Negative indexing is not supported.
+```
+
+Buna rağmen, kolayca sorunun çevresinden dolaşabilirsiniz. Bunun gibi order_by() ifadesini değiştirmeniz yeterlidir:
+
+```python
+>>> Publisher.objects.order_by('-name')[0]
+```
+
+## Updating Multiple Objects in One Statement
+## Bir Deyimde Birden Çok Nesneyi Güncelleme
+
+Model save() yöntemi, bir satırdaki tüm sütunları güncelleştiren "Verileri Ekleme ve Güncelleme" bölümünde belirttik. Uygulamanıza bağlı olarak, yalnızca bir sütun alt kümesini güncellemek isteyebilirsiniz. Örneğin, adı 'Apress' olan 'Apress Publishing' olarak değiştirmek için Apress Publisher'ı güncellemek istediğimizi varsayalım. save() işlevini kullanarak şu şekilde görünür:
+
+```
+>>> p = Publisher.objects.get(name='Apress')
+>>> p.name = 'Apress Publishing'
+>>> p.save()
+```
+
+Bu kabaca aşağıdaki SQL'ye çevirir:
+
+```SQL
+SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE name = 'Apress';
+
+UPDATE books_publisher SET
+    name = 'Apress Publishing',
+    address = '2855 Telegraph Ave.',
+    city = 'Berkeley',
+    state_province = 'CA',
+    country = 'U.S.A.',
+    website = 'http://www.apress.com'
+WHERE id = 52;
+```
+
+(Bu örnekte, Apress'in bir yayıncı kimliğinin 52 olduğunu varsayıyoruz.) Bu örnekte, Django'nun save() yönteminin sadece ad sütununu değil, tüm sütun değerlerini ayarladığını görebilirsiniz. Başka bir işlem nedeniyle veritabanının diğer sütunlarının değişebileceği bir ortamdaysanız, yalnızca değiştirmek istediğiniz sütunu değiştirmek daha akıllıdır. Bunu yapmak için, `QuerySet` nesneleri üzerinde `update()` yöntemini kullanın. İşte bir örnek:
+
+```python
+>>> Publisher.objects.filter(id=52).update(name='Apress Publishing')
+```
+
+Buradaki SQL çevirisi çok daha verimli ve yarış koşulları şansı yok:
+
+```SQL
+UPDATE books_publisher
+SET name = 'Apress Publishing'
+WHERE id = 52;
+```
+
+update() yöntemi, birden fazla kaydı toplu olarak düzenleyebileceğiniz anlamına gelen herhangi bir Query Setinde çalışır. Burada herbir kayıtta Ülkeyi 'U.S.A'den' nasıl 'USA' değiştirebilirsiniz gösteriliyor:
+
+```python
+>>> Publisher.objects.filter(country="U.S.A").update(country="USA")
+2 
+```
+
+update() yönteminde bir dönüş değeri vardır - kaç kayıt değiştirildiğini gösteren bir tam sayı. Yukarıdaki örnekte 2 var.
+
+## Deleting Objects
+## Nesneleri Silme
+
