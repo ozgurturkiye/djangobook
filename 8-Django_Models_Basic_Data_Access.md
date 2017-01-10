@@ -179,3 +179,82 @@ WHERE id=52;
 
 ## Selecting Objects
 ## Nesneleri Seçme
+
+Veritabanı kayıtlarını nasıl oluşturacağınızı ve güncelleyeceğinizi bilmek çok önemlidir, ancak oluşturacağınız Web uygulamalarının mevcut nesnelerin yenilerini oluşturmaktan çok sorgulamasını yapmanız olasılığı vardır. Belli bir model için her kaydı almak için bir yol bulmuştık:
+
+```python
+>>> Publisher.objects.all()
+[<Publisher: Apress>, <Publisher: O'Reilly>]
+This roughly translates to this SQL:
+
+SELECT id, name, address, city, state_province, country, website
+FROM books_publisher;
+```
+
+* Django, verileri ararken SELECT * 'ı kullanmaz ve bunun yerine tüm alanları açıkça listelediğine dikkat edin.
+Bu tasarım gereğidir: Bazı durumlarda SELECT * daha yavaş olabilir ve (daha da önemlisi) listeleme alanları, Python Zen'in bir öğretisini daha yakından takip eder: "Açıkça örtükten iyidir." Python Zen hakkında daha fazla bilgi için Python prompt'a `import this `yazmayı deneyin.
+
+Bu Publisher.objects.all () satırının her bir parçasını yakından inceleyelim:
+
+1. İlk olarak, tanımladığımız model olan Publisher'ımız var. Burada şaşırtıcı değilsiniz: Verilere bakmak istediğinizde, o veri için modeli kullanırsınız.
+2. Daha sonra, nesneler özelliğine sahibiz. Buna bir yönetici denir. Yöneticiler Bölüm 09'da ayrıntılı olarak ele alınmaktadır. Şimdilik, bilmeniz gereken tek şey, yöneticilerin, en önemlisi veri aramayı da içeren veri üzerindeki "tablo düzeyinde" işlemlere dikkat etmeleri. Tüm modeller otomatik olarak bir nesne yöneticisi alır; Model örnekleri aramak istediğinizde kullanabilirsiniz.
+3. Son olarak, all() metoduna sahibiz. Bu, veritabanındaki tüm satırları döndüren nesne yöneticisinde bir yöntemdir. Bu nesne bir listeye benziyor olsa da, aslında bir QuerySet - veritabanından belirli bir satır kümesini temsil eden bir nesne. Ek C, QuerySet'leri ayrıntılı olarak ele almaktadır. Bu bölümün geri kalan kısmı için, onlara taklit ettikleri listeler gibi davranacağız.
+
+Herhangi bir veritabanı araması bu genel modeli takip edecektir - sorgulanmak istediğimiz modele eklenmiş yönetici üzerindeki yöntemleri çağıracağız.
+
+## Filtering Data
+## Verileri Filtreleme
+
+Doğal olarak, bir veritabanından her şeyi bir kerede seçmek nadirdir; Çoğu durumda verilerinizin bir alt kümesiyle ilgilenmek isteyeceksiniz. Django API'sında, verilerinizi filter() yöntemini kullanarak filtreleyebilirsiniz:
+
+```python
+>>> Publisher.objects.filter(name='Apress')
+[<Publisher: Apress>]
+```
+
+filter(), uygun `SQL WHERE` yan tümcelerine tercüme edilen anahtar kelime bağımsız değişkenlerini alır. Önceki örnek, böyle bir şeye tercüme edilebilir:
+
+```SQL
+SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE name = 'Apress';
+```
+
+İşlemleri daha da daraltmak için filter() öğesine birden çok bağımsız değişken geçirebilirsiniz:
+
+```python
+>>> Publisher.objects.filter(country="U.S.A.",
+state_province="CA")
+[<Publisher: Apress>]
+```
+
+Bu çoklu argümanlar `SQL AND` cümlelerine tercüme edilir. Böylece kod snippet'inde yer alan örnek şu şekilde çevirir:
+
+```SQL
+SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE country = 'U.S.A.'
+AND state_province = 'CA';
+```
+
+Varsayılan olarak, aramalarda tam eşleme aramaları yapmak için SQL `=` işleci kullanıldığına dikkat edin.
+Diğer arama türleri de mevcuttur:
+
+```python
+>>> Publisher.objects.filter(name__contains="press")
+[<Publisher: Apress>]
+```
+
+Bu, `name` ve `contains` arasında bir çift altçizgi. Python'un kendisi gibi, Django, "sihir" olayının meydana geldiğini işaretlemek için çift altçizgi kullanır - burada, `__contains` bölümü Django tarafından bir `SQL LIKE` ifadesine dönüştürülür:
+
+```SQL
+SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE name LIKE '%press%';
+```
+
+`İcontains` (büyük / küçük harf duyarlı olmayan `LIKE`), `startswith` ve `endswith` ve `range` (SQL `BETWEEN` sorguları) dahil birçok başka arama türü mevcuttur. Ek C, bu arama türlerinin tümünü ayrıntılı olarak açıklamaktadır.
+
+## Retrieving Single Objects
+## Tek Nesneleri Alma
+
