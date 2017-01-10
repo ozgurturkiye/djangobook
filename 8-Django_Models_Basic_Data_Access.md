@@ -470,6 +470,8 @@ WHERE id = 52;
 
 update() yöntemi, birden fazla kaydı toplu olarak düzenleyebileceğiniz anlamına gelen herhangi bir Query Setinde çalışır. Burada herbir kayıtta Ülkeyi 'U.S.A'den' nasıl 'USA' değiştirebilirsiniz gösteriliyor:
 
+* Yanlız filtre(`filter`) kısmını boş brakırsan bütün `country` leri "USA" yaparsın sonra gözlerin dolu dolu olur, ağlarsın...
+
 ```python
 >>> Publisher.objects.filter(country="U.S.A").update(country="USA")
 2 
@@ -480,3 +482,49 @@ update() yönteminde bir dönüş değeri vardır - kaç kayıt değiştirildiğ
 ## Deleting Objects
 ## Nesneleri Silme
 
+Bir nesneyi veritabanından silmek için, nesnenin delete() yöntemini çağırmanız yeterlidir:
+
+```python
+>>> p = Publisher.objects.get(name="O'Reilly")
+>>> p.delete()
+>>> Publisher.objects.all()
+[<Publisher: Apress Publishing>]
+```
+
+Herhangi bir `QuerySet`'in sonucunda `delete()` öğesini çağırarak nesneleri toplu olarak silebilirsiniz. Bu, son bölümde gösterdiğimiz `update()` yöntemine benzer:
+
+* Hatırlatmakta fayda var filter boş olursa yine herşey silinir. ` Publisher.objects.filter().delete() ` -- Bunu yapma demek oluyor ;)
+
+```python
+>>> Publisher.objects.filter(country='USA').delete()
+>>> Publisher.objects.all().delete()
+>>> Publisher.objects.all()
+[]
+```
+
+Verilerinizi silmek için dikkatli olun! Belirli bir tablodaki tüm verilerin silinmesine karşı bir önlem olarak, Django, tablonuzdaki her şeyi silmek isterseniz `all()` işlevini kullanmanızı ister. Örneğin, bu işe yaramaz:
+
+```python
+>>> Publisher.objects.delete()
+Traceback (most recent call last):
+  File "", line 1, in 
+AttributeError: 'Manager' object has no attribute 'delete'
+```
+
+Ancak all() yöntemini eklerseniz işe yarayacaktır:
+
+```python
+>>> Publisher.objects.all().delete()
+If you're just deleting a subset of your data, you don't need to include `all()`.
+```
+
+To repeat a previous example:
+
+```python
+>>> Publisher.objects.filter(country='USA').delete()
+```
+
+## What’s Next?
+## Sıradaki Ne? :D
+
+Bu bölümü okuduktan sonra, temel veritabanı uygulamalarını yazabilmek için Django modelleri hakkında yeterli bilgiye sahip olursunuz. Bölüm 9, Django'nun veritabanı katmanının daha gelişmiş kullanımı hakkında bazı bilgiler sağlayacaktır. Modellerinizi tanımladıktan sonra, bir sonraki adım veritabanınızı veri ile doldurmaktır. Eski veriler olabilir, bu durumda Bölüm 21, eski veritabanlarıyla entegrasyon konusunda size tavsiyeler sunar. Verilerinizi sunmak için site kullanıcılarına güvenebilirsiniz, bu durumda Bölüm 6 size, kullanıcı tarafından gönderilen form verilerini nasıl işleyeceğini öğretecektir. Ancak, bazı durumlarda, siz veya ekibiniz verileri elle girmeniz gerekebilir; bu durumda, veriyi girmek ve yönetmek için Web tabanlı bir arabirime sahip olmak faydalı olacaktır. Sonraki bölümde, tam da bu sebeple var olan Django'nun yönetici arayüzü ele alınmaktadır.
