@@ -518,7 +518,7 @@ Ancak all() yöntemini eklerseniz işe yarayacaktır:
 If you're just deleting a subset of your data, you don't need to include `all()`.
 ```
 
-To repeat a previous example:
+Önceki bir örneği tekrar etmek için:
 
 ```python
 >>> Publisher.objects.filter(country='USA').delete()
