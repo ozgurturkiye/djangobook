@@ -31,8 +31,8 @@ Ardından, istediğiniz e-posta adresini girmeniz istenir:
 Son adım şifrenizi girmektir.
 İki kez şifrenizi girmeniz istenecek, ikinci sefer ise ilk şifrenizi onaylamanız istenecektir.
 
-`
+```python
 Password: **********
 Password (again): *********
 Superuser created successfully.
-`
+```
