@@ -8,3 +8,31 @@ Peki bu sıkıcı, tekrarlayan görevlere Django'nun yaklaşımı nedir? Senin i
 
 Django ile yönetici arayüzü oluşturmak çözülmüş bir sorundur. Bu bölümde Django'nun otomatik yönetici arayüzünü inceleyeceğiz: Modellerimize nasıl uygun bir arayüz oluşturduğunu kontrol ederek,
 Ve onunla yapabileceğimiz diğer yararlı şeylerden bazıları.
+
+## Using the Django Admin Site
+## Django Yönetici Site'sini Kullanma
+
+Bölüm 1'de `django-admin startproject mysite`'yi çalıştırdığınızda, Django varsayılan admin sitesini sizin için oluşturup yapılandırdı. Yapmanız gereken şey bir yönetici kullanıcısı (süper kullanıcı) oluşturmak ve ardından yönetici sitesinde oturum açabilmek.
+
+Bir yönetici kullanıcısı oluşturmak için aşağıdaki komutu çalıştırın:
+
+```python
+python manage.py createsuperuser 
+```
+
+İstediğiniz kullanıcı adını girin ve enter tuşuna basın.
+
+`Username: admin`
+
+Ardından, istediğiniz e-posta adresini girmeniz istenir:
+
+`Email address: admin@example.com`
+
+Son adım şifrenizi girmektir.
+İki kez şifrenizi girmeniz istenecek, ikinci sefer ise ilk şifrenizi onaylamanız istenecektir.
+
+`
+Password: **********
+Password (again): *********
+Superuser created successfully.
+`
