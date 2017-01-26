@@ -102,3 +102,73 @@ Ana değişiklik listesi seçeneklerini buradan aldık. Bu seçenekleri kullanar
 ## Customizing Edit Forms
 ## Formları Düzenlemeyi Özelleştirme
 
+Değişim listesinin özelleştirilebileceği gibi, düzenleme formları birçok açıdan özelleştirilebilir. İlk olarak, alanların nasıl sipariş edildiğini özelleştirelim. Varsayılan olarak, bir düzenleme formundaki alanların sırası, modelde tanımlandıkları sırayla karşılık gelir. Bunu, `ModelAdmin` alt sınıfımızdaki `fields` seçeneğini kullanarak değiştirebiliriz:
+
+```python
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher', 'publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    ordering = ('-publication_date',)
+    fields = ('title', 'authors', 'publisher', publication_date')
+```
+
+Bu değişiklikten sonra, kitaplar için düzenleme formu alanları için verilen sipariş kullanacaktır. Kitap başlığından sonra yazarların olması biraz doğal. Tabii ki, alan sırası, veri girişi iş akışınıza bağlı olmalıdır. Her biçim farklıdır.
+
+`Alanlar` seçeneğinin yapabileceğiniz bir diğer kullanışlı şey, bazı alanları tamamen düzenlenmekten alıkoymaktır. Hariç tutmak istediğiniz alanı / alanları dışarıda bırakmanız yeterlidir. Yönetici kullanıcılarınızın verilerinizin belirli bir bölümünü düzenlemek üzere yalnızca güveniliyorsa veya bazı alanlarınız bazı dış, otomatik işlemle değiştirilirse bunu kullanabilirsiniz.
+
+Örneğin, kitap veritabanımızda, `publication_date` alanının düzenlenebilir olmasını gizleyebiliriz:
+
+```python
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher','publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    ordering = ('-publication_date',)
+    fields = ('title', 'authors', 'publisher')
+```
+
+Sonuç olarak, kitaplar için düzenleme formu, yayınlanma tarihini belirtmenin bir yolunu sunmaz. Yazarların yayın tarihlerini geriye doğru itmemesini tercih eden bir editörseniz bu, yararlı olabilir. (Tabii ki tamamen varsayımsal bir örnek budur.) Kullanıcı bu eksik formu yeni bir kitap eklemek için kullandığında, Django sadece `publication_date` değerini `None` olarak ayarlar - bu alanın `null = True` olduğundan emin olun.
+
+Yaygın olarak kullanılan bir diğer düzenleme biçimi özelleştirme, many-to-many alanlarla ilgilidir. Kitaplar için düzenleme formunda gördüğümüz gibi yönetici sitesi, her `ManyToManyField`'i, kullanılacak en mantıklı HTML girişi widget'ı olan çoklu seçim kutuları olarak temsil eder; ancak çoklu seçim kutuları kullanmak zor olabilir. Birden fazla öğe seçmek isterseniz, bunu yapmak için kontrol tuşunu basılı tutmanız veya Mac'te komutlamanız gerekir.
+
+Yönetici sitesi, bunu açıklayan biraz metin ekler, ancak alanınızda yüzlerce seçenek bulunduğu zaman hala hantal olur. Yönetici sitesinin çözümü `filter_horizontal`. Bunu `BookAdmin`'e ekleyelim ve ne yaptığına bakalım.
+
+```python
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher','publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    ordering = ('-publication_date',)
+    filter_horizontal = ('authors',)
+```
+
+(Takip ediyorsanız, düzenleme alanındaki tüm alanları görüntülemek için alanlar seçeneğini de kaldırdığımızı unutmayın.) Kitaplar için düzenleme formunu tekrar yükleyin ve "Yazarlar" bölümünün artık bir Seçenekler arasından dinamik olarak arama yapmanızı ve belirli yazarları "Mevcut yazarlar" dan "Seçilen yazarlar" kutusuna taşıdırabilmenize olanak tanıyan fantezi JavaScript filtresi arayüzü.
+
+Şekil 5-13: filter_horizontal eklendikten sonra kitap düzenleme formu
+
+10'dan fazla öğe içeren herhangi bir `ManyToManyField` için `filter_horizontal` özelliğini kullanmanızı şiddetle tavsiye ederim. Basit ve çoktan seçmeli bir widgetten çok daha kolaydır. Ayrıca, birden çok alan için `filter_horizontal` özelliğini kullanabileceğinizi unutmayın - tekstteki her adı belirtmeniz yeterlidir.
+
+`ModelAdmin` sınıfları ayrıca bir `filter_vertical` seçeneğini destekler. Bu tam olarak `filter_horizontal` gibi çalışır, ancak ortaya çıkan JavaScript arabirimi iki kutuyu yatay olmayan dikey olarak yığınlar. Kişisel bir zevk meselesi.
+
+`filter_horizontal` ve `filter_vertical` yalnızca `ForeignKey` alanları değil, `ManyToManyField` alanlarında çalışır. Varsayılan olarak, yönetici sitesi, `ForeignKey` alanları için basit `<select>` kutuları kullanır, ancak `ManyToManyField`'a gelince, bazen açılır menüde görüntülenecek tüm ilgili nesneleri seçmek zorunda kalmanın yükünü azaltmak istemezsiniz.
+
+Örneğin, kitap veritabanımız binlerce yayıncının katılımıyla büyüyorsa, "Kitap ekle" formunun yüklenmesi biraz zaman alabilir, çünkü her yayıncıyı `<select>` kutusuna yüklemek zorunda kalacaktır.
+
+Bunu düzeltmenin yolu, `raw_id_fields` adlı bir seçenek kullanmaktır:
+
+```python
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher','publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    ordering = ('-publication_date',)
+    filter_horizontal = ('authors',)
+    raw_id_fields = ('publisher',)
+```
+
+Bunu bir `ForeignKey` alan adları grubuna ayarlayın ve bu alanlar, bir `<select>` yerine basit bir metin giriş kutusu (`<input type = "text">`) ile yönetici'de görüntülenecektir. Bkz. Şekil 5-14.
+
+Şekil 5-14: Ham_id_fields ekledikten sonra kitap düzenleme formu
+
+Bu giriş kutusuna ne girersiniz? Yayıncının veritabanı kimliği. İnsanlar normalde veritabanı kimliklerini ezberlemediğinden, eklemek istediğiniz yayıncıyı seçebileceğiniz bir açılır pencere açmak için tıklayabileceğiniz büyüteç simgesi de vardır.
