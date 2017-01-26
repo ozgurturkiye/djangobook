@@ -21,7 +21,7 @@ Değişiklik listesi ekranına birkaç tane daha alan ekleyerek bu varsayılan d
 
 ```python
 from django.contrib import admin
-from mysite.books.models import Publisher, Author, Book
+from .models import Publisher, Author, Book #Bu bölümde çok sorun yaşadım .models olması gerekiyormuş
 
 class AuthorAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'email')
@@ -48,4 +48,57 @@ Sayfayı tarayıcınıza yeniden yükleyin ve en üstte bir arama çubuğu görm
 Şekil 5-9: search_fields eklendikten sonra yazar değişim listesi sayfası
 
 Sonra, `Kitap` modelimizin değişim listesi sayfasına bazı tarih filtreleri ekleyelim:
+
+```python
+from django.contrib import admin
+from .models import Publisher, Author, Book
+
+class AuthorAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'email')
+    search_fields = ('first_name', 'last_name')
+
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher', 'publication_date')
+    list_filter = ('publication_date',)
+
+admin.site.register(Publisher)
+admin.site.register(Author, AuthorAdmin)
+admin.site.register(Book, BookAdmin)
+```
+
+Burada, farklı seçenekler grubuyla uğraştığımız için, `BookAdmin` adlı ayrı bir `ModelAdmin` sınıfı oluşturduk. İlk olarak, bir değişim listesinin biraz daha hoş görünmesini sağlamak için bir `liste_görüntüsü` tanımladık. Ardından, change list sayfasının sağ tarafında filtreler oluşturmak için kullanılacak bir alanlar kümesine ayarlanmış olan `list_filter`i kullandık. Tarih alanlarında Django, listeyi "Bugün", "Son 7 gün", "Bu ay" ve "Bu yıl" şeklinde filtrelemek için kısayollar sağlar; bu kısayollar Django'nun geliştiricilerinin bulduğu kısayollar tarihe göre filtreleme için genel vakalara uygundur. Şekil 5-10, neye benzediğini göstermektedir.
+
+Şekil 5-10: Liste_filterinden sonra defter değiştirme listesi sayfası
+
+`list_filter`, yalnızca `DateField` değil, başka türdeki alanlarda da çalışır. (Örneğin, `BooleanField` ve `ForeignKey` alanları ile deneyin.) Filtreler, seçilecek en az 2 değer olduğu sürece görünür. Tarih filtreleri sunmanın başka bir yolu, aşağıdaki gibi `date_hierarchy` yönetici seçeneğini kullanmaktır:
+
+```python
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher','publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+```
+
+Bunu yaptığınızda, değişim listesi sayfası, Şekil 5-11'de gösterildiği gibi, listenin en üstünde bir tarih bulma gezinme çubuğu alır. Kullanılabilir yılların bir listesinden başlar, sonra aylar ve bireysel günlere kadar iner.
+
+Şekil 5-11: `date_hierarchy`den sonra kitap değiştirme listesi sayfası
+
+Hiyerarşiyi yapmak için yalnızca bir tarih alanı kullanılacağı için `date_hierarchy`'nin bir "tuple" değil bir "karakter dizisi" kullandığını unutmayın. Son olarak, değişiklik listesi sayfasındaki kitapların her zaman yayın tarihlerine göre inerek düzenlenmesini sağlamak için varsayılan siparişi değiştirelim. Varsayılan olarak, değişim listesi, Meta sınıfında (4. Bölüm'de ele almış olduğumuz) modelin siparişine göre nesneleri emir verir; ancak bu sıralama değerini belirtmediyseniz, sipariş tanımsızdır.
+
+```python
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher','publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    ordering = ('-publication_date',)
+```
+
+Bu yönetici `sıralama` seçeneği, tam olarak listede ilk alan adını kullanması hariç, modellerin sınıfı Meta'daki siparişlerle aynı şekilde çalışır. Azalan sıralama düzenini kullanmak için bir liste veya alan adlarının birçoğunu geçin ve bir alana eksi işareti ekleyin. Bunu hareket halinde görmek için kitap değiştirme listesini tekrar yükleyin. "Yayın tarihi" başlığının artık kayıtların hangi yönde sıralanmış olduğunu gösteren küçük bir ok içerdiğini unutmayın. (Bakınız Şekil 5-12.)
+
+Şekil 5-12: Siparişten sonra kitap değiştirme listesi sayfası
+
+Ana değişiklik listesi seçeneklerini buradan aldık. Bu seçenekleri kullanarak, yalnızca birkaç satırlık bir kodla üretime hazır çok güçlü bir veri düzenleme arabirimi oluşturabilirsiniz.
+
+## Customizing Edit Forms
+## Formları Düzenlemeyi Özelleştirme
 
