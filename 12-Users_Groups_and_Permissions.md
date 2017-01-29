@@ -22,3 +22,26 @@ Kullanıcı nesnelerinin, kullanıcıya yönetici arayüzünde ne yapmalarına i
 
 Kullanıcıları gruplara da atayabilirsiniz. Bir grup, yalnızca o grubun tüm üyelerine uygulanacak bir izin kümesidir. Gruplar, kullanıcıların bir alt kümesine aynı izinleri vermek için kullanışlıdır.
 
+## When and Why to Use the Admin Interface – And When Not to
+## Yönetici Arayüzünü Ne Zaman ve Niye Kullanalım - Ve Ne Zaman Kullanmayalım
+
+Bu bölüm üzerinde çalıştıktan sonra, Django'nun yönetim sitesini nasıl kullanacağınız hakkında iyi bir fikriniz olmalıdır. Ancak ne zaman ve neden onu kullanmak isteyebileceğinizi ve ne zaman kullanmayacağınız belirtmek istiyorum.
+
+Django'nun yönetici sitesi özellikle teknik olmayan kullanıcılar veri girişi yapabilmek için ihtiyaç duydukları zaman parlar; Sonuçta, bu özelliğin arkasındaki amaç budur. Django'nun ilk geliştirildiği gazetede, tipik bir çevrimiçi özelliğin geliştirilmesi -örneğin, belediye arzında su kalitesi üzerine özel bir rapor- böyle bir şeye gidiyor:
+
+* Projeden sorumlu muhabir, geliştiricilerden biriyle görüşür ve mevcut verileri açıklar.
+* Geliştirici, bu verilere uyacak şekilde Django modelleri tasarlar ve daha sonra yönetici sitesini muhabir için açar.
+* Muhabir, yönetim alanını kayıp veya yabancı alanları işaret etmesini denetler - daha sonradan daha iyi. Geliştirici, modelleri tekrar tekrar değiştirir.
+* Modeller üzerinde mutabakata varıldığında muhabir, yönetici sitesini kullanarak veri girişi yapmaya başlar. Aynı zamanda, programcı herkese açık erişilebilir görünümleri / şablonları geliştirmeye odaklanabilir (eğlenceli kısım!).
+
+Başka bir deyişle, Django'nun yönetici arayüzünün varlığı, içerik üreticilerinin ve programcıların eşzamanlı çalışmalarını kolaylaştırıyor. Bununla birlikte, bu belirgin veri girme görevlerinin ötesinde, yönetici sitesi birkaç durum daha yararlıdır:
+
+* Veri modellerini inceleme: Birkaç model tanımladıktan sonra, bunları yönetici arayüzünde çağırıp bazı kukla veriler girmek oldukça yararlı olabilir. Bazı durumlarda, bu, veri modelleme hataları veya modellerinizle ilgili diğer sorunlar ortaya koyabilir.
+* Edinilen verileri yönetme: Dış kaynaktan (ör. Kullanıcılar veya Web tarayıcıları) gelen verilere dayanan uygulamalar için yönetici sitesi, bu verileri incelemek veya düzenlemek için kolay bir yol sağlar. Veritabanınızın komut satırı yardımcı programının daha az güçlü fakat daha kullanışlı bir versiyonu olarak düşünebilirsiniz.
+* Hızlı ve kirli veri yönetimi uygulamaları: Kendinize hafif bir veri yönetimi uygulaması oluşturmak için (örneğin, giderleri takip etmek için) yönetici sitesini kullanabilirsiniz. Yalnızca kendi ihtiyaçlarınıza göre bir şeyler inşa ediyorsanız, genel kullanım için değil, yönetici sitesi size uzun bir yol kat edebilir. Bu anlamda, bir elektronik tabloların güçlendirilmiş, ilişkisel bir versiyonu olarak düşünebilirsiniz.
+* Ancak yönetici sitesi her şeyden önce ve sonunda değil. Verilere genel bir arayüz olarak tasarlanmamıştır, verilerinizin sofistike sıralanmasına ve aranmasına izin vermeye yönelik değildir. Bu bölümün başında söylediğimiz gibi, güvenilir site yöneticileri içindir. Bu tatlı noktayı göz önünde bulundurmak etkin yönetici sitesi kullanımının anahtarıdır.
+
+## What’s Next?
+## Sıradaki ne?
+
+Şimdiye kadar birkaç model oluşturduk ve verileri düzenlemeye yönelik birinci sınıf arayüzü yapılandırdık. Bir sonraki bölümde, Web geliştirme sürecinin gerçek "et ve patatesleri" ne geçeceğiz: form oluşturma ve işleme.
