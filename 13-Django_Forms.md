@@ -28,9 +28,13 @@ def hello(request):
 Tablo 6-1: `HttpRequest` yöntemleri ve öznitelikleri
 
 Attribute/method 	Description 	Example
+
 request.path 	The full path, not including the domain but including the leading slash. 	“/hello/”
+
 request.get_host() 	The host (i.e., the “domain,” in common parlance). 	“127.0.0.1:8000” or “www.example.com”
+
 request.get_full_path() 	The path, plus a query string (if available). 	“/hello/?print=true”
+
 request.is_secure() 	True if the request was made via HTTPS. Otherwise, False. 	True or False
 
 Görüşlerinizdeki URL'leri sabit kodlamak yerine daima bu nitelikleri / yöntemleri kullanın. Bu, başka yerlerde tekrar kullanılabilen daha esnek kodlar sağlar. Basit bir örnek:
